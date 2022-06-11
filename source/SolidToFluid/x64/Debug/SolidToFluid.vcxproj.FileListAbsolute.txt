@@ -1,0 +1,2 @@
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\x64\Debug\SolidToFluid.exe
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\x64\Debug\SolidToFluid.pdb
