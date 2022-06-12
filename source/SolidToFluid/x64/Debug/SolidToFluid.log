@@ -1,4 +1,10 @@
 ﻿  main.cpp
-C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(112,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(113,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(143,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(221,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(222,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(226,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(227,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(228,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(229,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\main.cpp(235,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
   SolidToFluid.vcxproj -> C:\Users\Ginger\Desktop\Projects\SolidToFluid\source\SolidToFluid\x64\Debug\SolidToFluid.exe

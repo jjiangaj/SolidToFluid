@@ -38,7 +38,6 @@ bool PLYLoader::loadModel(string filepath) {
 			}
 			else if (filein == "face") {
 				fs >> this->totalFaces;
-				cout << this->totalFaces;
 			}
 			getline(fs, filein, '\n');
 		}
@@ -48,11 +47,20 @@ bool PLYLoader::loadModel(string filepath) {
 				cout << "Vertices number not read" << endl;
 				return false;
 			}
-			this->vertexXYZ = (float*)malloc(3 * (this->totalVertices) * sizeof(float));
+			this->vertexXYZ = (float*)malloc(6 * (this->totalVertices) * sizeof(float));
 			for (int i = 0; i < this->totalVertices; i++) {
-				fs >> (this->vertexXYZ)[i * 3];
-				fs >> (this->vertexXYZ)[i * 3 + 1];
-				fs >> (this->vertexXYZ)[i * 3 + 2];
+				fs >> (this->vertexXYZ)[i * 6 + 0];
+				fs >> (this->vertexXYZ)[i * 6 + 1];
+				fs >> (this->vertexXYZ)[i * 6 + 2];
+				(this->vertexXYZ)[i * 6 + 0] *= 5; //enlarge the original model
+				(this->vertexXYZ)[i * 6 + 1] *= 5;
+				(this->vertexXYZ)[i * 6 + 2] *= 5;
+
+				(this->vertexXYZ)[i * 6 + 3] = 0; //to store vertex normal
+				(this->vertexXYZ)[i * 6 + 4] = 0;
+				(this->vertexXYZ)[i * 6 + 5] = 0;
+
+				//go to the next line
 				getline(fs, filein, '\n');
 			}
 
