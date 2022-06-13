@@ -8,7 +8,7 @@
 #include <shader/shader.h>
 #include <camera/camera.h>
 #include <iostream>
-#include "plyReader.h"
+#include "model.h"
 
 using namespace std;
 
@@ -71,59 +71,69 @@ int main()
     // -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
-	Shader defaultShader("vshader.vs", "fshader.fs");
+	Shader bunnyShader("bunny.vs", "bunny.fs");
 
 	// load the model
+	// the Model class load the vertices and indices data, 
+	// and calculate the vertex normal(to be used for Gouraud shading).
+	// The default velocities and forces are set to 0.
 	// -----------------------------
-	PLYLoader bunny;
-	bunny.loadModel("../../resources/bunny.ply");
+	Model bunny("../../resources/bunny.ply");
 	float* vertices = bunny.getVertexXYZ();
 	int* indices = bunny.getVertexIndex();
 	int counts = bunny.getTotalVertices();
 	int faces = bunny.getTotalFaces();
+	float* velocity = bunny.getVelocity();
+	float* forces = bunny.getForce();
+
+	float floorVertices[] = {
+		// positions          // normals          
+		-2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
+		-2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
+		-2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f
+	};
 	
-	for (int i = 0; i < faces; i++) {
-		int i1 = indices[3 * i + 0] * 6;
-		int i2 = indices[3 * i + 1] * 6;
-		int i3 = indices[3 * i + 2] * 6;
-
-		glm::vec3 v1 = glm::vec3(vertices[i1] - vertices[i2], vertices[i1 + 1] - vertices[i2 + 1], vertices[i1 + 2] - vertices[i2 + 2]);
-		glm::vec3 v2 = glm::vec3(vertices[i1] - vertices[i3], vertices[i1 + 1] - vertices[i3 + 1], vertices[i1 + 2] - vertices[i3 + 2]);
-		glm::vec3 norm = glm::normalize(glm::cross(v1, v2));
-		
-		vertices[i1 + 3] += norm.x;
-		vertices[i1 + 4] += norm.y;
-		vertices[i1 + 5] += norm.z;
-		vertices[i2 + 3] += norm.x;
-		vertices[i2 + 4] += norm.y;
-		vertices[i2 + 5] += norm.z;
-		vertices[i3 + 3] += norm.x;
-		vertices[i3 + 4] += norm.y;
-		vertices[i3 + 5] += norm.z;
-	}
-
 	// VBO, EBO, VAO
+	// -----------------------------
 	unsigned int VBO, EBO, VAO;
+	//VAO
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 	//VBO
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); 
 	glBufferData(GL_ARRAY_BUFFER, counts * 6 *sizeof(GL_FLOAT), vertices, GL_STATIC_DRAW);
-	
-	//VAO
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	//EBO
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces * 3 * sizeof(GL_FLOAT), indices, GL_STATIC_DRAW);
-
+	//VAO Attributes
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
 	glEnableVertexAttribArray(1);
+	//EBO
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces * 3 * sizeof(GL_FLOAT), indices, GL_STATIC_DRAW);
+	//UnbindVAO
+	glBindVertexArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//floorVAO,floorVBO
+	// -----------------------------
+	unsigned int floorVAO, floorVBO;
+	//VAO
+	glGenVertexArrays(1, &floorVAO);
+	glBindVertexArray(floorVAO);
+	//VBO
+	glGenBuffers(1, &floorVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+	glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(GL_FLOAT), floorVertices, GL_STATIC_DRAW);
+	//VAO Attributes
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void*)(3 * sizeof(GL_FLOAT)));
+	glEnableVertexAttribArray(1);
+	//UnbindVAO
 	glBindVertexArray(0);
 
 	// render loop
@@ -144,36 +154,41 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// activate the shader
+		// render the bunny
 		// ------
-		defaultShader.use();
+		bunnyShader.use();
 		glm::mat4 view;
 		glm::mat4 projection = glm::mat4(1.0f);
 		view = camera.GetViewMatrix();
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
-		defaultShader.setMat4("view", view);
-		defaultShader.setMat4("projection", projection);
+		bunnyShader.setMat4("view", view);
+		bunnyShader.setMat4("projection", projection);
 		glm::mat4 model = glm::mat4(1.0f);
-		defaultShader.setMat4("model", model);
+		bunnyShader.setMat4("model", model);
 
 		glm::vec3 lightPos(1.2f, -1.0f, -2.0f);
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
-		defaultShader.setVec3("light.ambient", ambientColor);
-		defaultShader.setVec3("light.diffuse", diffuseColor);
-		defaultShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-		defaultShader.setVec3("light.position", lightPos);
-		defaultShader.setVec3("material.ambient", 0.6f, 0.56f, 0.76f);
-		defaultShader.setVec3("material.diffuse", 0.6f, 0.56f, 0.76f);
-		defaultShader.setVec3("material.specular", 0.8f, 0.8f, 0.8f);
-		defaultShader.setFloat("material.shininess", 32.0f);
+		bunnyShader.setVec3("light.ambient", ambientColor);
+		bunnyShader.setVec3("light.diffuse", diffuseColor);
+		bunnyShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		bunnyShader.setVec3("light.position", lightPos);
+		bunnyShader.setVec3("material.ambient", 0.6f, 0.56f, 0.76f);
+		bunnyShader.setVec3("material.diffuse", 0.6f, 0.56f, 0.76f);
+		bunnyShader.setVec3("material.specular", 0.8f, 0.8f, 0.8f);
+		bunnyShader.setFloat("material.shininess", 32.0f);
 
-		// render the triangle
-		// ------
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, faces * 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+
+		// render the floor and wall
+		// ------
+		glBindVertexArray(floorVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------

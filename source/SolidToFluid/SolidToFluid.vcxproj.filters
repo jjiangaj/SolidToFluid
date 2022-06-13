@@ -21,15 +21,15 @@
     <ClCompile Include="..\..\glad.c">
       <Filter>资源文件</Filter>
     </ClCompile>
-    <ClCompile Include="plyReader.cpp">
+    <ClCompile Include="model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vshader.vs">
+    <None Include="bunny.vs">
       <Filter>源文件</Filter>
     </None>
-    <None Include="fshader.fs">
+    <None Include="bunny.fs">
       <Filter>源文件</Filter>
     </None>
   </ItemGroup>
@@ -37,7 +37,7 @@
     <ClInclude Include="..\..\stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="plyReader.h">
+    <ClInclude Include="model.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
