@@ -72,11 +72,15 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader bunnyShader("bunny.vs", "bunny.fs");
+	Shader floorShader("floor.vs", "floor.fs");
 
 	// load the model
 	// the Model class load the vertices and indices data, 
 	// and calculate the vertex normal(to be used for Gouraud shading).
 	// The default velocities and forces are set to 0.
+	// vertices data structure:
+	// [0 - 2]              |   [3 -  5]
+	// Vertices coordinate  |   Vertex normal coordinates
 	// -----------------------------
 	Model bunny("../../resources/bunny.ply");
 	float* vertices = bunny.getVertexXYZ();
@@ -88,13 +92,39 @@ int main()
 
 	float floorVertices[] = {
 		// positions          // normals          
-		-2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f,
-		 2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f,
-		 2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
-		 2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
-		-2.0f,  -0.25f,  2.0f,  0.0f,  1.0f,  0.0f,
-		-2.0f,  -0.25f, -2.0f,  0.0f,  1.0f,  0.0f
+		-2.0f,  0.164937f, -2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  0.164937f, -2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  0.164937f,  2.0f,  0.0f,  1.0f,  0.0f,
+		 2.0f,  0.164937f,  2.0f,  0.0f,  1.0f,  0.0f,
+		-2.0f,  0.164937f,  2.0f,  0.0f,  1.0f,  0.0f,
+		-2.0f,  0.164937f, -2.0f,  0.0f,  1.0f,  0.0f
 	};
+
+	unsigned int floorTexture;
+	// floorTexture
+	// ---------
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &floorTexture);
+	glBindTexture(GL_TEXTURE_2D, floorTexture);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load and generate the texture
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load("../../resources/floorTex.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	    glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	floorShader.setInt("floorTexture", 0); 
 	
 	// VBO, EBO, VAO
 	// -----------------------------
@@ -148,6 +178,8 @@ int main()
 		// ------
 		glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
 
 		// -----
 		float currentFrame = glfwGetTime();
@@ -168,16 +200,20 @@ int main()
 
 		glm::vec3 lightPos(1.2f, -1.0f, -2.0f);
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.6f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.3f);
 		bunnyShader.setVec3("light.ambient", ambientColor);
 		bunnyShader.setVec3("light.diffuse", diffuseColor);
 		bunnyShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 		bunnyShader.setVec3("light.position", lightPos);
-		bunnyShader.setVec3("material.ambient", 0.6f, 0.56f, 0.76f);
-		bunnyShader.setVec3("material.diffuse", 0.6f, 0.56f, 0.76f);
-		bunnyShader.setVec3("material.specular", 0.8f, 0.8f, 0.8f);
-		bunnyShader.setFloat("material.shininess", 32.0f);
+
+		bunnyShader.setVec3("material.ambient", 0.329412f, 0.223529f, 0.027451f);
+		bunnyShader.setVec3("material.diffuse", 0.780392f, 0.568627f, 0.113725f);
+		bunnyShader.setVec3("material.specular", 0.992157f, 0.941176f, 0.807843f);
+		bunnyShader.setFloat("material.shininess", 27.8974f);
+		bunnyShader.setFloat("light.constant", 1.0f);
+		bunnyShader.setFloat("light.linear", 0.09f);
+		bunnyShader.setFloat("light.quadratic", 0.032f);
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, faces * 3, GL_UNSIGNED_INT, 0);
@@ -185,6 +221,22 @@ int main()
 
 		// render the floor and wall
 		// ------
+		floorShader.use();
+		floorShader.setMat4("view", view);
+		floorShader.setMat4("projection", projection);
+		floorShader.setMat4("model", model);
+		floorShader.setVec3("light.ambient", lightColor* glm::vec3(0.7f));
+		floorShader.setVec3("light.diffuse", diffuseColor* glm::vec3(0.5f));
+		floorShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		floorShader.setVec3("light.position", lightPos);
+		floorShader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
+		floorShader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0f);
+		floorShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+		floorShader.setFloat("material.shininess", 8.0f);
+		floorShader.setFloat("light.constant", 1.0f);
+		floorShader.setFloat("light.linear", 0.09f);
+		floorShader.setFloat("light.quadratic", 0.032f);
+
 		glBindVertexArray(floorVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
@@ -219,6 +271,10 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		camera.ProcessKeyboard(UP, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		camera.ProcessKeyboard(DOWN, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

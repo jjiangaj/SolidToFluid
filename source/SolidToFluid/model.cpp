@@ -75,9 +75,10 @@ bool Model::loadModel(string filepath) {
 			}
 			this->vertexXYZ = (float*)malloc(6 * (this->totalVertices) * sizeof(float));
 			for (int i = 0; i < this->totalVertices; i++) {
-				fs >> (this->vertexXYZ)[i * 6 + 0];
+				fs >> (this->vertexXYZ)[i * 6 + 0]; // read in the data
 				fs >> (this->vertexXYZ)[i * 6 + 1];
 				fs >> (this->vertexXYZ)[i * 6 + 2];
+
 				(this->vertexXYZ)[i * 6 + 0] *= 5; //enlarge the original model
 				(this->vertexXYZ)[i * 6 + 1] *= 5;
 				(this->vertexXYZ)[i * 6 + 2] *= 5;
@@ -113,14 +114,17 @@ bool Model::loadModel(string filepath) {
 
 void Model::calcNorm(){
 	for (int i = 0; i < this->totalFaces; i++) {
-		int i1 = this->vertexIndex[3 * i + 0] * 6;
+		// get corresponding vertex index of a face
+		int i1 = this->vertexIndex[3 * i + 0] * 6; // each vertex has 6 attributes: X Y Z normX normY normZ
 		int i2 = this->vertexIndex[3 * i + 1] * 6;
 		int i3 = this->vertexIndex[3 * i + 2] * 6;
 
+		// calculate face normal
 		glm::vec3 v1 = glm::vec3(this->vertexXYZ[i1] - this->vertexXYZ[i2], this->vertexXYZ[i1 + 1] - this->vertexXYZ[i2 + 1], this->vertexXYZ[i1 + 2] - this->vertexXYZ[i2 + 2]);
 		glm::vec3 v2 = glm::vec3(this->vertexXYZ[i1] - this->vertexXYZ[i3], this->vertexXYZ[i1 + 1] - this->vertexXYZ[i3 + 1], this->vertexXYZ[i1 + 2] - this->vertexXYZ[i3 + 2]);
 		glm::vec3 norm = glm::normalize(glm::cross(v1, v2));
 
+		// add to each vertex to calculate vertex normal
 		this->vertexXYZ[i1 + 3] += norm.x;
 		this->vertexXYZ[i1 + 4] += norm.y;
 		this->vertexXYZ[i1 + 5] += norm.z;

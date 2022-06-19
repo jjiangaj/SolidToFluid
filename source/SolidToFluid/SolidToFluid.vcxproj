@@ -152,6 +152,8 @@
   <ItemGroup>
     <None Include="bunny.fs" />
     <None Include="bunny.vs" />
+    <None Include="floor.fs" />
+    <None Include="floor.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\stb_image.h" />

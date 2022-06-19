@@ -32,6 +32,12 @@
     <None Include="bunny.fs">
       <Filter>源文件</Filter>
     </None>
+    <None Include="floor.fs">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="floor.vs">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\stb_image.h">
